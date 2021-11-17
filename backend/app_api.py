@@ -4,12 +4,12 @@ from app_structures import AuthenticationToken, Course
 
 
 # App Functionality
-def authenticate(username: str, password: str) -> AuthenticationToken:
+def authenticate(username: str, password: str) -> Optional[AuthenticationToken]:
     """Authenticate User
 
     :param username: User's username
     :param password: User's password
-    :return: Object containing the authentication token and the expiration datetime
+    :return: Object containing the authentication token and the expiration datetime (if success, otherwise None)
     """
     pass
 
