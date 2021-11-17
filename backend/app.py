@@ -1,14 +1,23 @@
+import os
 import json
 
-from flask import Flask, request, abort
+from flask import Flask, request, abort, g
 
-from backend.app_api import authenticate, logout, see_associated_classes, see_courses, register_for_course, \
-    see_course_students, edit_grade, execute_sql
+from backend.app_api import AppAPI
 
 app = Flask(__name__)
 
 # Configuration variables
 api_path = "/api/v1"
+db_path = os.environ.get("DB_PATH")
+
+
+# Application components
+def get_api():
+    api = getattr(g, "_api", None)
+    if api is None:
+        api = g._api = AppAPI(database_path=db_path)
+    return api
 
 
 # Base application routers
@@ -19,6 +28,9 @@ def home_handler():
 
 @app.route(f'{api_path}/auth/', methods=['POST'])
 def api_auth():
+    # Get the global API context
+    api = get_api()
+
     body = request.json
 
     # Verify correct parameters have been given
@@ -26,19 +38,27 @@ def api_auth():
         abort(401, description="Information not given!")
 
     # Attempt to authenticate the user
-    auth_token = authenticate(username=body["username"], password=body["password"])
+    raw_result = api.authenticate(username=body["username"], password=body["password"])
 
     # Verify authentication was successful
-    if auth_token is None:
+    if raw_result is None:
         abort(401, description="Could not authorize!")
 
+    # Unpack raw_result
+    auth_token, privileges = raw_result
+    del raw_result
+
     # Build response and return information
-    response = f"{{ \"auth_token\": \"{auth_token.token_content}\", \"expiration\": \"{auth_token.expiration}\" }}"
+    response = f'''{{ \"auth_token\": \"{auth_token.token_content}\", \"expiration\": \"{auth_token.expiration}\", 
+    \"privileges\": {json.dumps(privileges)}}} '''
     return json.loads(response)
 
 
 @app.route(f'{api_path}/auth/logout', methods=['POST'])
 def api_logout():
+    # Get the global API context
+    api = get_api()
+
     body = request.json
 
     # Verify correct parameters have been given
@@ -46,7 +66,7 @@ def api_logout():
         abort(500, description="Information not given!")
 
     # Perform logout
-    result = logout(username=body["username"], token=body["token"])
+    result = api.logout(username=body["username"], token=body["token"])
 
     # Return the status
     return f"{{ success: {result} }}"
@@ -55,6 +75,9 @@ def api_logout():
 # Student application routers
 @app.route(f'{api_path}/student/my_courses', methods=['GET'])
 def student_my_courses():
+    # Get the global API context
+    api = get_api()
+
     body = request.json
 
     # Verify correct parameters have been given
@@ -63,7 +86,7 @@ def student_my_courses():
 
     # Get student's courses
     # [TODO] Change student_name to the actual student's name
-    courses = see_associated_classes(username=body["username"], token=body["token"], student_name=body["username"])
+    courses = api.see_associated_classes(username=body["username"], token=body["token"])
 
     # Return the courses as JSON
     return json.dumps(courses)
@@ -71,6 +94,9 @@ def student_my_courses():
 
 @app.route(f'{api_path}/student/all_courses', methods=['GET'])
 def student_all_courses():
+    # Get the global API context
+    api = get_api()
+
     body = request.json
 
     # Verify correct parameters have been given
@@ -78,7 +104,7 @@ def student_all_courses():
         abort(500, description="Information not given!")
 
     # Get list of courses + course info
-    courses = see_courses(username=body["username"], token=body["token"], spots_available=False)
+    courses = api.see_courses(username=body["username"], token=body["token"], spots_available=False)
 
     # Return the courses as JSON
     return json.dumps(courses)
@@ -86,6 +112,9 @@ def student_all_courses():
 
 @app.route(f'{api_path}/student/register_course', methods=['POST'])
 def student_register_course():
+    # Get the global API context
+    api = get_api()
+
     body = request.json
 
     # Verify correct parameters have been given
@@ -93,7 +122,7 @@ def student_register_course():
         abort(500, description="Information not given!")
 
     # Get list of courses + course info
-    result = register_for_course(username=body["username"], token=body["token"], course_id=body["course_id"])
+    result = api.register_for_course(username=body["username"], token=body["token"], course_id=body["course_id"])
 
     # Return the whether the registration was successful
     return json.dumps(f"{{ success: {result} }}")
@@ -102,6 +131,9 @@ def student_register_course():
 # Instructor application routers
 @app.route(f'{api_path}/instructor/course_students', methods=['GET'])
 def instructor_get_students():
+    # Get the global API context
+    api = get_api()
+
     body = request.json
 
     # Verify correct parameters have been given
@@ -109,7 +141,8 @@ def instructor_get_students():
         abort(500, description="Information not given!")
 
     # Get list of students as tuples
-    course_students = see_course_students(username=body["username"], token=body["token"], course_id=body["course_id"])
+    course_students = api.see_course_students(username=body["username"], token=body["token"],
+                                              course_id=body["course_id"])
 
     # Return the students as JSON
     return json.dumps(course_students)
@@ -117,6 +150,9 @@ def instructor_get_students():
 
 @app.route(f'{api_path}/instructor/edit_grade', methods=['PUT'])
 def instructor_edit_grade():
+    # Get the global API context
+    api = get_api()
+
     body = request.json
 
     # Verify correct parameters have been given
@@ -125,8 +161,8 @@ def instructor_edit_grade():
         abort(500, description="Information not given!")
 
     # Attempt to update the student's grade
-    result = edit_grade(username=body["username"], token=body["token"], course_id=body["course_id"],
-                        student_id=body["student_id"], updated_grade=float(body["updated_grade"]))
+    result = api.edit_grade(username=body["username"], token=body["token"], course_id=body["course_id"],
+                            student_id=body["student_id"], updated_grade=float(body["updated_grade"]))
 
     # Return the whether the update was successful
     return json.dumps(f"{{ success: {result} }}")
@@ -134,6 +170,9 @@ def instructor_edit_grade():
 
 @app.route(f'{api_path}/admin/sql_statement', methods=['POST'])
 def admin_execute_sql():
+    # Get the global API context
+    api = get_api()
+
     body = request.json
 
     # Verify correct parameters have been given
@@ -142,13 +181,21 @@ def admin_execute_sql():
         abort(500, description="Information not given!")
 
     # Attempt to execute the SQL statement (pls no injection :( )
-    result = execute_sql(username=body["username"], token=body["token"], sql_statement=body["sql_statement"])
+    result = api.execute_sql(username=body["username"], token=body["token"], sql_statement=body["sql_statement"])
 
     # Return the result of the SQL statement as JSON (might break things!)
     return json.dumps(f"{{ result: {result} }}")
 
 
-if __name__ == '__main__':
+@app.teardown_appcontext
+def close_api_context(exception):
+    api = getattr(g, "_api", None)
+    if api is not None:
+        api.close()
 
+    print(f"Exception while tearing down: {exception}") if exception is not None else None
+
+
+if __name__ == '__main__':
     # Run the app
     app.run()
