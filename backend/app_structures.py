@@ -22,21 +22,3 @@ class AuthenticationToken(object):
 
         # Otherwise, token _is not_ expired
         return False
-
-
-class Course(object):
-    course_id: str
-    course_name: str
-    instructor: str
-    time: str
-    students_enrolled: int
-    capacity: int
-
-    def __init__(self, course_id: str, course_name: str, instructor: str, time: str, students_enrolled: int,
-                 capacity: int) -> None:
-        self.course_id = course_id
-        self.course_name = course_name
-        self.instructor = instructor
-        self.time = time
-        self.students_enrolled = students_enrolled
-        self.capacity = capacity
