@@ -58,23 +58,22 @@ function register_course(){
   let token = getCookie("auth-token")
 
   $('#rowclick2 tr').filter(':has(:checkbox:checked)').find('th').each(function() {
-    // this = td element
+    // this = th element
   let payload = {"username":names[0], "token":token, "course_id":this.innerHTML}
+  var course_id = this.innerHTML
   $.ajax({
     url: "/api/v1/students/register_course",
     type: "GET",
     contentType: 'application/json',
     data: payload
   }).done(function(response) {
+    session = document.getElementById("session-result")
     var json = JSON.parse(response)
     console.log(json);
-    var i = 0;
-    json.forEach(element => {
-      var row = document.createElement("TR");
-      //json[i][""]
-        row.appendChild(cell);
-      })
-      table[0].appendChild(row);
+    var result = "";
+      result = "<p>"+course_id+": "+json[i]["success"]+"<\\p> <br>"
+    session.innerHTML = result
+    i++
     });
   });
 }
