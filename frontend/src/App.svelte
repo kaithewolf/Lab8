@@ -1,30 +1,342 @@
 <script>
-	export let name;
+    export let name;
+
+    // Base vars
+    const baseURL = "http://127.0.0.1:8192";
+
+    // User vars
+    var username = null;
+    var auth_token = null;
+
+	// Global State
+	let course_id = null;
+	let student_id = null;
+	let updated_grade = null;
+	let sql_statement = null;
+
+
+    // [DEBUG] Testing Things
+    username = "bendover";
+	// username = "jeffbezos"
+    const password = "hunter2";
+	course_id = "cse-999";
+	student_id = "bendover";
+	updated_grade = 60.8;
+	sql_statement = 'SELECT * FROM users;';
+    auth_token = "K9vMPKguGdkMPCVCp5Ffb0QeLBQ8RxAe9ryiq7Y79KE";
+	// auth_token = "9hvj5-K-zxHdSc0utLglx6hZB7unuAb2j_k93l8M7RA"
+
+    async function testLogin() {
+        await login(username, password);
+    }
+
+    async function testLogout() {
+        await logout(username, auth_token);
+    }
+
+    async function testGetEnrolled() {
+        await get_enrolled_courses(username, auth_token);
+    }
+
+    async function testGetAll() {
+        await get_all_courses(username, auth_token)
+    }
+
+    async function testRegister() {
+        await register_for_course(username, auth_token, course_id);
+    }
+
+    async function testGetStudents() {
+		await get_course_students(username, auth_token, course_id);
+    }
+
+    async function testGetTeaching() {
+        await get_teaching_courses(username, auth_token);
+    }
+
+    async function testEditGrade() {
+        await edit_grade(username, auth_token, course_id, student_id, updated_grade);
+    }
+
+    async function testRunSQL() {
+		await execute_sql(username, auth_token, sql_statement);
+    }
+
+    // Shared Network Routines
+    async function login(username, password) {
+        // Create the request body
+        const body = {"username": username, "password": password};
+
+        // Make the request
+        fetch(baseURL + "/api/v1/auth/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        })
+            .then(response => {
+                console.log(response);
+                response.json().then(content => {
+                    // Record the authentication token
+                    auth_token = content.auth_token;
+					console.log(auth_token)
+                });
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    }
+
+    async function logout(username, token) {
+        // Create the request body
+        const body = {"username": username, "token": token}
+
+        // Make the request
+        fetch(baseURL + "/api/v1/auth/logout", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        })
+            .then(response => {
+                console.log(response);
+                response.json().then(content => {
+					// [TODO] Do something with response
+                    console.log(content)
+                });
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    }
+
+    // Student Network Routines
+    async function get_enrolled_courses(username, token) {
+        // Create the request body
+        const body = {"username": username, "token": token}
+
+        // Make the request
+        fetch(baseURL + "/api/v1/student/my_courses", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        })
+			.then(response => {
+				console.log(response);
+				response.json().then(content => {
+					// [TODO] Do something with response
+					console.log(content)
+				});
+			})
+            .catch(err => {
+                console.error(err);
+            });
+    }
+
+    async function get_all_courses(username, token) {
+		// Create the request body
+		const body = {"username": username, "token": token}
+
+		// Make the request
+		fetch(baseURL + "/api/v1/student/all_courses", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(body)
+		})
+				.then(response => {
+					console.log(response);
+					response.json().then(content => {
+						// [TODO] Do something with response
+						console.log(content)
+					});
+				})
+				.catch(err => {
+					console.error(err);
+				});
+    }
+
+    async function register_for_course(username, token, course_id) {
+		// Create the request body
+		const body = {"username": username, "token": token, "course_id": course_id}
+
+		// Make the request
+		fetch(baseURL + "/api/v1/student/register_course", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(body)
+		})
+				.then(response => {
+					console.log(response);
+					response.json().then(content => {
+						// [TODO] Do something with response
+						console.log(content)
+					});
+				})
+				.catch(err => {
+					console.error(err);
+				});
+    }
+
+    // Instructor Network Routines
+    async function get_course_students(username, token, course_id) {
+		// Create the request body
+		const body = {"username": username, "token": token, "course_id": course_id}
+
+		// Make the request
+		fetch(baseURL + "/api/v1/instructor/course_students", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(body)
+		})
+				.then(response => {
+					console.log(response);
+					response.json().then(content => {
+						// [TODO] Do something with response
+						console.log(content)
+					});
+				})
+				.catch(err => {
+					console.error(err);
+				});
+    }
+
+    async function get_teaching_courses(username, token) {
+		// Create the request body
+		const body = {"username": username, "token": token}
+
+		// Make the request
+		fetch(baseURL + "/api/v1/instructor/my_courses", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(body)
+		})
+				.then(response => {
+					console.log(response);
+					response.json().then(content => {
+						// [TODO] Do something with response
+						console.log(content)
+					});
+				})
+				.catch(err => {
+					console.error(err);
+				});
+    }
+
+    async function edit_grade(username, token, course_id, student_id, updated_grade) {
+		// Create the request body
+		const body = {
+			"username": username,
+			"token": token,
+			"course_id": course_id,
+			"student_id": student_id,
+			"updated_grade": updated_grade
+		}
+
+		// Make the request
+		fetch(baseURL + "/api/v1/instructor/edit_grade", {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(body)
+		})
+				.then(response => {
+					console.log(response);
+					response.json().then(content => {
+						// [TODO] Do something with response
+						console.log(content)
+					});
+				})
+				.catch(err => {
+					console.error(err);
+				});
+    }
+
+    // Admin Network Routines
+    async function execute_sql(username, token, sql_statement) {
+		// Create the request body
+		const body = {"username": username, "token": token, "sql_statement": sql_statement}
+
+		// Make the request
+		fetch(baseURL + "/api/v1/admin/sql_statement", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(body)
+		})
+				.then(response => {
+					console.log(response);
+					response.json().then(content => {
+						// [TODO] Do something with response
+						console.log(content)
+					});
+				})
+				.catch(err => {
+					console.error(err);
+				});
+    }
 </script>
 
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+    <h3>Common</h3>
+
+    <button on:click={testLogin}>Log In</button>
+    <button on:click={testLogout}>Log Out</button>
+
+    <hr>
+
+    <h3>Student</h3>
+
+    <button on:click={testGetEnrolled}>Get Enrolled Courses</button>
+    <button on:click={testGetAll}>Get All Courses</button>
+    <button on:click={testRegister}>Register for Course</button>
+
+    <hr>
+
+    <h3>Instructor</h3>
+
+    <button on:click={testGetStudents}>Get Course Students</button>
+    <button on:click={testGetTeaching}>Get Teaching Courses</button>
+    <button on:click={testEditGrade}>Edit Grade</button>
+
+    <hr>
+
+    <h3>Admin</h3>
+
+    <button on:click={testRunSQL}>Run SQL</button>
 </main>
 
 <style>
-	main {
-		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
-	}
+    main {
+        text-align: center;
+        padding: 1em;
+        max-width: 240px;
+        margin: 0 auto;
+    }
 
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
+    h1 {
+        color: #ff3e00;
+        text-transform: uppercase;
+        font-size: 4em;
+        font-weight: 100;
+    }
 
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
-	}
+    @media (min-width: 640px) {
+        main {
+            max-width: none;
+        }
+    }
 </style>
