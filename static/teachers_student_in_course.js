@@ -41,8 +41,9 @@ function loadfunction(){
       var text = text+"<td>"+json[i]["name"]+"<\\td>"
       text = text+ "<td>"+json[i]["grade"]+"<\\td>"
         row.appendChild(text);
-      })
       table[0].appendChild(row);
+        i++
+      })
   });
 }
 

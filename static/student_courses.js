@@ -44,8 +44,9 @@ function loadfunction(){
       text = text+ "<td>"+json[i]["students_enrolled"]+"<\\td>"
       text = text+ "<td>"+json[i]["capacity"]+"<\\td>"
         row.appendChild(text);
-      })
       table[0].appendChild(row);
+        i++;
+      })
     });
 }
 
