@@ -1,9 +1,11 @@
+var button = document.getElementById("submit")
 var table = document.getElementsByClassName("table table-striped");
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
 
 window.onload = function(){loadfunction()}
+button.onclick = function(){register_course()}
 
 function getCookie(cname){
   var name = cname + "=";
@@ -25,9 +27,9 @@ function loadfunction(){
 
   let token = getCookie("auth-token")
 
-  let payload = {"username":names[0], "token":token, "student_name":names[0]}
+  let payload = {"username":names[0], "token":token, "spots_available":false}
   $.ajax({
-    url: "/api/v1/students/my_courses",
+    url: "/api/v1/students/all_courses",
     type: "GET",
     contentType: 'application/json',
     data: payload
@@ -42,6 +44,33 @@ function loadfunction(){
       })
       table[0].appendChild(row);
     });
+}
+
+function register_course(){
+  let names = document.getElementsByClassName("username");
+  names[0].innerHTML = urlParams.get("username");
+  let token = getCookie("auth-token")
+
+  $('#rowclick2 tr').filter(':has(:checkbox:checked)').find('th').each(function() {
+    // this = td element
+  let payload = {"username":names[0], "token":token, "course_id":this.innerHTML}
+  $.ajax({
+    url: "/api/v1/students/register_course",
+    type: "GET",
+    contentType: 'application/json',
+    data: payload
+  }).done(function(response) {
+    var json = JSON.parse(response)
+    console.log(json);
+    var i = 0;
+    json.forEach(element => {
+      var row = document.createElement("TR");
+      //json[i][""]
+        row.appendChild(cell);
+      })
+      table[0].appendChild(row);
+    });
+  });
 }
 
 
