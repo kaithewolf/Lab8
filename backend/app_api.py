@@ -532,12 +532,12 @@ class AppAPI(object):
 
         return courses
 
-    def edit_grade(self, username: str, token: str, course_id: str, student_id: str, updated_grade: float) -> bool:
+    def edit_grade(self, username: str, token: str, course_abbreviation: str, student_id: str, updated_grade: float) -> bool:
         """Edit a student's grade for a given course
 
         :param username: The user's username
         :param token: The user's authentication token (will be validated before changes are made)
-        :param course_id: The course identifier
+        :param course_abbreviation: The course to register for (as an abbreviated "identifier")
         :param student_id: The student's student ID (to change)
         :param updated_grade: The updated grade for the student
         """
@@ -545,6 +545,33 @@ class AppAPI(object):
         # Validate user first
         if not self.validate(username=username, token=token, check_privilege='instructor'):
             raise RuntimeError("User not verified!")
+
+        # Get the student's UID
+        student_uid = self.get_uid(username=student_id)
+
+        # Get a DB cursor
+        cursor = self._db_connection.cursor()
+
+        # Get the course ID from the abbreviation
+        cursor.execute('''
+                    SELECT course_id FROM courses WHERE course_abbreviation LIKE ?;
+                ''', (course_abbreviation,))
+        db_result = cursor.fetchone()
+
+        # If no associated courses are found
+        if db_result is None:
+            RuntimeError(f"Could not find course associated with: {course_abbreviation}")
+
+        # Extract the course ID from the returned tuple
+        course_id = db_result[0]
+
+        # Run update in the DB
+        cursor.execute('''
+            UPDATE enrollment_records SET grade = ? WHERE uid = ? AND course_id = ?
+        ''', (updated_grade, student_uid, course_id))
+        self._db_connection.commit()
+
+        return True
 
     # Admin Activities
 

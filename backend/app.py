@@ -179,7 +179,7 @@ def instructor_edit_grade():
         abort(500, description="Information not given!")
 
     # Attempt to update the student's grade
-    result = api.edit_grade(username=body["username"], token=body["token"], course_id=body["course_id"],
+    result = api.edit_grade(username=body["username"], token=body["token"], course_abbreviation=body["course_id"],
                             student_id=body["student_id"], updated_grade=float(body["updated_grade"]))
 
     # Return the whether the update was successful
