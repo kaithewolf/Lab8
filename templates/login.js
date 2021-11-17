@@ -37,7 +37,7 @@ function checkLogin(){
     alert("Missing password");
     return;
   }
-  
+
   let payload = {"username":name_str, "password":pass_str}
   $.ajax({
     url: "/api/v1/auth/",
@@ -47,6 +47,7 @@ function checkLogin(){
   }).done(function(response) {
     var json = JSON.parse(response)
     console.log(json)
+    document.cookie = json.auth_token+";"+json.expiration+";"+json.priveleges+"; path=/";
     if (json.priveleges == "student")
     {
       window.location = "student_courses.html?username="+name_str
