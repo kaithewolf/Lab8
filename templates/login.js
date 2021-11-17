@@ -23,8 +23,8 @@ function getCookie(cname){
 }
 
 function checkLogin(){
-  let name_str = String(username.value)
-  let pass_str = String(password.value)
+  let name_str = encodeURIComponent(String(username.value));
+  let pass_str = encodeURIComponent(String(password.value));
   if (name_str == "" && pass_str == "")
   {
     alert("Missing username and password");
@@ -37,14 +37,27 @@ function checkLogin(){
     alert("Missing password");
     return;
   }
+  let payload = {"username":name_str, "password":pass_str}
+  $.ajax({
+    url: "/api/v1/auth/",
+    type: "POST",
+    contentType: 'application/json',
+    data: payload
+  }).done(function(response) {
+    var json = JSON.parse(response)
+    console.log(json)
+    if (json.priveleges == "student")
+    {
+      window.location = "student_courses.html?username="+name_str
+    }else if (json.priveleges == "instructor")
+    {
 
-  //authenticate password
-  //get user from databse
-  //if (pass_str == user.password)
-  //authenticate
-  //if role is student, student_courses.html
-  //if role is teacher, teacher_courses.html
-  //if role is admin, admin.html
-  window.location = "student_courses.html"
+      window.location = "teacher_courses.html?username="+name_str
+    }else 
+    {
+      //window.location = "admin.html?username="+name_str
+    }
+  });
+
   
 }
