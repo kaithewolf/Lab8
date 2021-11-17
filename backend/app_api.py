@@ -65,6 +65,7 @@ class AppAPI(object):
                 enrollment_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 uid INTEGER NOT NULL,
                 course_id INTEGER NOT NULL,
+                grade NUMERIC NOT NULL DEFAULT 100.0,
                 UNIQUE (uid, course_id),
                 CONSTRAINT fk_associated_user FOREIGN KEY (uid) REFERENCES users (uid),
                 CONSTRAINT fk_associated_course FOREIGN KEY (course_id) references courses (course_id)
@@ -411,18 +412,67 @@ class AppAPI(object):
         return True
 
     # Instructor Activities
-    def see_course_students(self, username: str, token: str, course_id: str) -> List[Tuple[str, float]]:
+    def see_course_students(self, username: str, token: str, course_abbreviation: str) -> List[Tuple[str, float]]:
         """Get list of students and information for a given course
 
         :param username: The user's username
         :param token: The user's authentication token (will be validated before changes are made)
-        :param course_id: The course ID to view
+        :param course_abbreviation: The course to register for (as an abbreviated "identifier")
         :return: List of tuples containing information as (student name, grade)
         """
 
         # Validate user first
         if not self.validate(username=username, token=token, check_privilege='instructor'):
             raise RuntimeError("User not verified!")
+
+        # Get a DB cursor
+        cursor = self._db_connection.cursor()
+
+        # Get the course ID from the abbreviation
+        cursor.execute('''
+            SELECT course_id FROM courses WHERE course_abbreviation LIKE ?;
+        ''', (course_abbreviation,))
+        db_result = cursor.fetchone()
+
+        # If no associated courses are found
+        if db_result is None:
+            RuntimeError(f"Could not find course associated with: {course_abbreviation}")
+
+        # Extract the course ID from the returned tuple
+        course_id = db_result[0]
+
+        # Query database for all courses
+        cursor.execute(
+            '''
+            SELECT 
+                uid,
+                grade
+            FROM 
+                enrollment_records
+            WHERE
+                course_id = ?
+            ;
+            ''', (course_id,))
+        db_results = cursor.fetchall()
+
+        # If no courses are available
+        if db_results is None or len(db_results) == 0:
+            return []
+
+        # Build information dicts for every student enrolled in this course
+        students = []
+        for result in db_results:
+            # Get the student's username (we don't want to be giving UIDs)
+            student_name = self.get_username(result[0])
+
+            # Build a course dict from the data
+            students.append({
+                "name": student_name,
+                "grade": float(result[1])
+            })
+
+        # Return list of student info dictionaries
+        return students
 
     def edit_grade(self, username: str, token: str, course_id: str, student_id: str, updated_grade: float) -> bool:
         """Edit a student's grade for a given course

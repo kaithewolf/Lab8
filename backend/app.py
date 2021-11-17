@@ -142,7 +142,7 @@ def instructor_get_students():
 
     # Get list of students as tuples
     course_students = api.see_course_students(username=body["username"], token=body["token"],
-                                              course_id=body["course_id"])
+                                              course_abbreviation=body["course_id"])
 
     # Return the students as JSON
     return json.dumps(course_students)
