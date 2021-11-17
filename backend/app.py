@@ -2,10 +2,15 @@ import os
 import json
 
 from flask import Flask, request, abort, g
+from flask_cors import CORS, cross_origin
 
 from backend.app_api import AppAPI
 
 app = Flask(__name__)
+CORS(app, support_credentials=True)
+
+# App configuration
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # Configuration variables
 api_path = "/api/v1"
@@ -73,7 +78,7 @@ def api_logout():
 
 
 # Student application routers
-@app.route(f'{api_path}/student/my_courses', methods=['GET'])
+@app.route(f'{api_path}/student/my_courses', methods=['POST'])
 def student_my_courses():
     # Get the global API context
     api = get_api()
@@ -92,7 +97,7 @@ def student_my_courses():
     return json.dumps(courses)
 
 
-@app.route(f'{api_path}/student/all_courses', methods=['GET'])
+@app.route(f'{api_path}/student/all_courses', methods=['POST'])
 def student_all_courses():
     # Get the global API context
     api = get_api()
@@ -129,7 +134,7 @@ def student_register_course():
 
 
 # Instructor application routers
-@app.route(f'{api_path}/instructor/course_students', methods=['GET'])
+@app.route(f'{api_path}/instructor/course_students', methods=['POST'])
 def instructor_get_students():
     # Get the global API context
     api = get_api()
@@ -148,7 +153,7 @@ def instructor_get_students():
     return json.dumps(course_students)
 
 
-@app.route(f'{api_path}/instructor/my_courses', methods=['GET'])
+@app.route(f'{api_path}/instructor/my_courses', methods=['POST'])
 def instructor_my_courses():
     # Get the global API context
     api = get_api()

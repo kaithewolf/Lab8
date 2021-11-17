@@ -5,8 +5,9 @@
     const baseURL = "http://127.0.0.1:8192";
 
     // User vars
-    var username = null;
-    var auth_token = null;
+    let username = null;
+	let password = null;
+    let auth_token = null;
 
 	// Global State
 	let course_id = null;
@@ -14,17 +15,26 @@
 	let updated_grade = null;
 	let sql_statement = null;
 
+	// Fetched State
+	let student_courses = [];
+	let available_courses = [];
+	let student_info = [];
+	let teaching_courses = [];
+	let edit_grade_output = null;
+	let sql_output = null;
 
     // [DEBUG] Testing Things
-    username = "bendover";
-	// username = "jeffbezos"
-    const password = "hunter2";
+    // username = "benjamindover";
+	username = "jeffbezos"
+	// username = "jman"
+	password = "hunter2";
 	course_id = "cse-999";
-	student_id = "bendover";
+	student_id = "benjamindover";
 	updated_grade = 60.8;
 	sql_statement = 'SELECT * FROM users;';
-    auth_token = "K9vMPKguGdkMPCVCp5Ffb0QeLBQ8RxAe9ryiq7Y79KE";
-	// auth_token = "9hvj5-K-zxHdSc0utLglx6hZB7unuAb2j_k93l8M7RA"
+    // auth_token = "FOE41n7e2fXOLLWGdMUkPlK9PpweLAxo8qTMj1Ds_RA";
+	auth_token = "9hvj5-K-zxHdSc0utLglx6hZB7unuAb2j_k93l8M7RA"
+	// auth_token = "brJrvWqBAn5XPU4nfdDGCeQLb3h5fl4oAq-Y9E88wc8"
 
     async function testLogin() {
         await login(username, password);
@@ -128,8 +138,8 @@
 			.then(response => {
 				console.log(response);
 				response.json().then(content => {
-					// [TODO] Do something with response
-					console.log(content)
+					console.log(content);
+					student_courses = content;
 				});
 			})
             .catch(err => {
@@ -152,8 +162,8 @@
 				.then(response => {
 					console.log(response);
 					response.json().then(content => {
-						// [TODO] Do something with response
 						console.log(content)
+						available_courses = content;
 					});
 				})
 				.catch(err => {
@@ -201,8 +211,8 @@
 				.then(response => {
 					console.log(response);
 					response.json().then(content => {
-						// [TODO] Do something with response
 						console.log(content)
+						student_info = content;
 					});
 				})
 				.catch(err => {
@@ -225,8 +235,8 @@
 				.then(response => {
 					console.log(response);
 					response.json().then(content => {
-						// [TODO] Do something with response
 						console.log(content)
+						teaching_courses = content;
 					});
 				})
 				.catch(err => {
@@ -255,8 +265,8 @@
 				.then(response => {
 					console.log(response);
 					response.json().then(content => {
-						// [TODO] Do something with response
 						console.log(content)
+						edit_grade_output = content;
 					});
 				})
 				.catch(err => {
@@ -280,8 +290,8 @@
 				.then(response => {
 					console.log(response);
 					response.json().then(content => {
-						// [TODO] Do something with response
 						console.log(content)
+						sql_output = content;
 					});
 				})
 				.catch(err => {
@@ -293,30 +303,135 @@
 <main>
     <h3>Common</h3>
 
+	<div>Username: <input bind:value={username} /></div>
+	<div>Password: <input bind:value={password} /></div>
     <button on:click={testLogin}>Log In</button>
     <button on:click={testLogout}>Log Out</button>
 
-    <hr>
+	<hr>
+	<hr>
+	<hr>
 
     <h3>Student</h3>
 
-    <button on:click={testGetEnrolled}>Get Enrolled Courses</button>
-    <button on:click={testGetAll}>Get All Courses</button>
-    <button on:click={testRegister}>Register for Course</button>
+	<h5>My Enrolled Courses:</h5>
+	<button on:click={testGetEnrolled}>Get Enrolled Courses</button>
+	<div>
+		<table style="margin: auto;">
+			<tr>
+				<th>Course Abbreviation</th>
+				<th>Course Name</th>
+				<th>Instructor</th>
+				<th>Time</th>
+				<th>Students Enrolled</th>
+				<th>Capacity</th>
+			</tr>
+			{#each student_courses as entry, i}
+				<tr>
+					<td>{entry["course_abbreviation"].toString()}</td>
+					<td>{entry["course_name"].toString()}</td>
+					<td>{entry["instructor"].toString()}</td>
+					<td>{entry["time"].toString()}</td>
+					<td>{entry["students_enrolled"].toString()}</td>
+					<td>{entry["capacity"].toString()}</td>
+				</tr>
+			{/each}
+		</table>
+	</div>
+
+	<h5>All Available Courses:</h5>
+	<button on:click={testGetAll}>Get All Courses</button>
+	<div>
+		<table style="margin: auto;">
+			<tr>
+				<th>Course Abbreviation</th>
+				<th>Course Name</th>
+				<th>Instructor</th>
+				<th>Time</th>
+				<th>Students Enrolled</th>
+				<th>Capacity</th>
+			</tr>
+			{#each available_courses as entry, i}
+				<tr>
+					<td>{entry["course_abbreviation"].toString()}</td>
+					<td>{entry["course_name"].toString()}</td>
+					<td>{entry["instructor"].toString()}</td>
+					<td>{entry["time"].toString()}</td>
+					<td>{entry["students_enrolled"].toString()}</td>
+					<td>{entry["capacity"].toString()}</td>
+				</tr>
+			{/each}
+		</table>
+	</div>
+
+	<h5>Register for Course:</h5>
+	<div>Course Abbreviation: <input bind:value={course_id} /> <button on:click={testRegister}>Submit</button></div>
+
+
 
     <hr>
+	<hr>
+	<hr>
 
     <h3>Instructor</h3>
 
-    <button on:click={testGetStudents}>Get Course Students</button>
-    <button on:click={testGetTeaching}>Get Teaching Courses</button>
-    <button on:click={testEditGrade}>Edit Grade</button>
+	<h5>Student Info for Course:</h5>
+	<button on:click={testGetStudents}>Get Course Students</button>
+	<div>Course Abbreviation: <input bind:value={course_id} /> <button on:click={testGetStudents}>Submit</button></div>
+	<div>
+		<table style="margin: auto;">
+			<tr>
+				<th>Name</th>
+				<th>Grade</th>
+			</tr>
+			{#each student_info as entry, i}
+				<tr>
+					<td>{entry["name"].toString()}</td>
+					<td>{entry["grade"].toString()}</td>
+				</tr>
+			{/each}
+		</table>
+	</div>
 
-    <hr>
+	<h5>Courses I'm Teaching:</h5>
+	<button on:click={testGetTeaching}>Get Teaching Courses</button>
+	<div>
+		<table style="margin: auto;">
+			<tr>
+				<th>Course Abbreviation</th>
+				<th>Course Name</th>
+				<th>Time</th>
+				<th>Students Enrolled</th>
+				<th>Capacity</th>
+			</tr>
+			{#each teaching_courses as entry, i}
+				<tr>
+					<td>{entry["course_abbreviation"].toString()}</td>
+					<td>{entry["course_name"].toString()}</td>
+					<td>{entry["time"].toString()}</td>
+					<td>{entry["students_enrolled"].toString()}</td>
+					<td>{entry["capacity"].toString()}</td>
+				</tr>
+			{/each}
+		</table>
+	</div>
+
+	<h5>Edit a Grade:</h5>
+	<div>Course Abbreviation: <input bind:value={course_id} /></div>
+	<div>Student ID: <input bind:value={student_id} /></div>
+	<div>Updated Grade: <input bind:value={updated_grade} /></div>
+	<button on:click={testEditGrade}>Submit Grade Change</button>
+
+
+	<hr>
+	<hr>
+	<hr>
 
     <h3>Admin</h3>
 
-    <button on:click={testRunSQL}>Run SQL</button>
+	<div>SQL Statement: <input bind:value={sql_statement} /></div>
+	<button on:click={testRunSQL}>Submit SQL to Server</button>
+	<div>Results: {sql_output}</div>
 </main>
 
 <style>
