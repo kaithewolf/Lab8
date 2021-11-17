@@ -322,7 +322,7 @@ class AppAPI(object):
         if not self.validate(username=username, token=token, check_privilege='student'):
             raise RuntimeError("User not verified!")
 
-        # Query database for courses associated with this UID
+        # Query database for all courses
         cursor = self._db_connection.cursor()
         cursor.execute(
             '''
