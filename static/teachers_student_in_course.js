@@ -35,6 +35,14 @@ function loadfunction(){
   }).done(function(response) {
     var json = JSON.parse(response)
     console.log(json)
+    var i = 0;
+    json.forEach(element => {
+      var row = document.createElement("TR");
+      var text = text+"<td>"+json[i]["name"]+"<\\td>"
+      text = text+ "<td>"+json[i]["grade"]+"<\\td>"
+        row.appendChild(text);
+      })
+      table[0].appendChild(row);
   });
 }
 

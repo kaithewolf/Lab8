@@ -34,6 +34,17 @@ function loadfunction(){
   }).done(function(response) {
     var json = JSON.parse(response)
     console.log(json)
+    var i = 0;
+    json.forEach(element => {
+      var row = document.createElement("TR");
+      var text = text+"<td>"+json[i]["course_abbreviation"]+"<\\td>"
+      text = text+ "<td>"+json[i]["course_name"]+"<\\td>"
+      text = text+ "<td>"+json[i]["time"]+"<\\td>"
+      text = text+ "<td>"+json[i]["students_enrolled"]+"<\\td>"
+      text = text+ "<td>"+json[i]["capacity"]+"<\\td>"
+        row.appendChild(text);
+      })
+      table[0].appendChild(row);
   });
   }
 
