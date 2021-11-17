@@ -23,7 +23,7 @@ function loadfunction(){
   let names = document.getElementsByClassName("username");
   names[0].innerHTML = urlParams.get("username");
 
-  let token = getCookie("token")
+  let token = getCookie("auth-token")
 
   let payload = {"username":names[0], "token":token, "student_name":names[0]}
   $.ajax({

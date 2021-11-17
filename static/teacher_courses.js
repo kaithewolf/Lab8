@@ -20,13 +20,14 @@ function getCookie(cname){
 }
 
 function loadfunction(){
-  let names = document.getElementsByClassName("username");
-  names[0].innerHTML = urlParams.get("username");
+  let names = document.getElementsByClassName("bd-heading sticky-xl-top align-self-start mt-5 mb-3 mt-xl-0 mb-xl-2");
+  names[0].innerHTML = "<h3>"+urlParams.get("username")+"</h3>";
 
-  let token = getCookie("token")
+  let token = getCookie("auth-token")
 
+  let payload = {"username":names[0], "token":token, "student_name":names[0]}
   $.ajax({
-    url: "/api/v1/instructor/my_courses",
+    url: "/api/v1/students/my_courses",
     type: "GET",
     contentType: 'application/json',
     data: payload
