@@ -29,7 +29,7 @@ function loadfunction(){
 
   let payload = {"username":names[0], "token":token, "spots_available":false}
   $.ajax({
-    url: "/api/v1/students/all_courses",
+    url: "/api/v1/student/all_courses",
     type: "GET",
     contentType: 'application/json',
     data: payload
@@ -41,7 +41,7 @@ function loadfunction(){
       var row = document.createElement("TR");
       var text = text+"<td>"+json[i]["course_abbreviation"]+"<\\td>"
       text = text+ "<td>"+json[i]["course_name"]+"<\\td>"
-      text = text+ "<td>"+json[i]["nstructor"]+"<\\td>"
+      text = text+ "<td>"+json[i]["instructor"]+"<\\td>"
       text = text+ "<td>"+json[i]["time"]+"<\\td>"
       text = text+ "<td>"+json[i]["students_enrolled"]+"<\\td>"
       text = text+ "<td>"+json[i]["capacity"]+"<\\td>"
@@ -62,7 +62,7 @@ function register_course(){
   let payload = {"username":names[0], "token":token, "course_id":this.innerHTML}
   var course_id = this.innerHTML
   $.ajax({
-    url: "/api/v1/students/register_course",
+    url: "/api/v1/student/register_course",
     type: "GET",
     contentType: 'application/json',
     data: payload

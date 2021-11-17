@@ -25,9 +25,9 @@ function loadfunction(){
 
   let token = getCookie("auth-token")
 
-  let payload = {"username":names[0], "token":token, "student_name":names[0]}
+  let payload = {"username":names[0], "token":token, "spots_available":false}
   $.ajax({
-    url: "/api/v1/student/my_courses",
+    url: "/api/v1/student/all_courses",
     type: "GET",
     contentType: 'application/json',
     data: payload

@@ -27,7 +27,7 @@ function loadfunction(){
 
   let payload = {"username":names[0], "token":token, "student_name":names[0]}
   $.ajax({
-    url: "/api/v1/students/my_courses",
+    url: "/api/v1/student/my_courses",
     type: "GET",
     contentType: 'application/json',
     data: payload
