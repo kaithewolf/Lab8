@@ -586,3 +586,14 @@ class AppAPI(object):
         # Validate user first
         if not self.validate(username=username, token=token, check_privilege='admin'):
             raise RuntimeError("User not verified!")
+
+        # Run the SQL
+        cursor = self._db_connection.cursor()
+        cursor.execute(sql_statement)
+
+        # Finalize
+        db_result = cursor.fetchall()
+        self._db_connection.commit()
+
+        # Return as string
+        return str(db_result)
