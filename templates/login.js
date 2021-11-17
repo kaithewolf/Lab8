@@ -38,6 +38,7 @@ function checkLogin(){
     return;
   }
 
+  document.cookie = name_str+";"
   let payload = {"username":name_str, "password":pass_str}
   $.ajax({
     url: "/api/v1/auth/",
@@ -47,7 +48,7 @@ function checkLogin(){
   }).done(function(response) {
     var json = JSON.parse(response)
     console.log(json)
-    document.cookie = json.auth_token+";"+json.expiration+";"+json.priveleges+"; path=/";
+    document.cookie = "auth_token="+json.auth_token+"; expiration = "+json.expiration+"; priveleges = "+json.priveleges+"; path=/";
     if (json.priveleges == "student")
     {
       window.location = "student_courses.html?username="+name_str
