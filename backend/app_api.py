@@ -474,6 +474,64 @@ class AppAPI(object):
         # Return list of student info dictionaries
         return students
 
+    def see_teaching_courses(self, username: str, token: str) -> List[Dict[str, object]]:
+        """See courses a given instructor is teaching
+
+        :param username: The user's username
+        :param token: User's authentication token (will be validated before information is returned)
+        :return: List of associated courses as dictionaries
+        """
+
+        # Validate user first
+        if not self.validate(username=username, token=token, check_privilege='instructor'):
+            raise RuntimeError("User not verified!")
+
+        # Get UID from user's username
+        uid = self.get_uid(username=username)
+
+        # Query database for courses instructed by a user with this UID
+        cursor = self._db_connection.cursor()
+        cursor.execute(
+            '''
+            SELECT 
+                course_id,
+                course_abbreviation,
+                course_name, 
+                time,
+                seats 
+            FROM 
+                courses
+            WHERE 
+                instructor_id = ?
+            ;
+            ''', (uid,))
+
+        db_results = cursor.fetchall()
+
+        if db_results is None:
+            print("No associated courses found!")
+            return []
+
+        # Build information dicts for every course this user is instructing
+        courses = []
+        for result in db_results:
+            # Get the number of students enrolled in this course already
+            cursor.execute('''SELECT COUNT(*) FROM enrollment_records WHERE course_id = ?;''', (result[0],))
+            students_enrolled = cursor.fetchone()[0]
+            if students_enrolled is None:
+                students_enrolled = 0
+
+            # Build a course dict from the data
+            courses.append({
+                "course_abbreviation": result[1],
+                "course_name": result[2],
+                "time": result[3],
+                "students_enrolled": students_enrolled,
+                "capacity": result[4],
+            })
+
+        return courses
+
     def edit_grade(self, username: str, token: str, course_id: str, student_id: str, updated_grade: float) -> bool:
         """Edit a student's grade for a given course
 

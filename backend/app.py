@@ -148,6 +148,24 @@ def instructor_get_students():
     return json.dumps(course_students)
 
 
+@app.route(f'{api_path}/instructor/my_courses', methods=['GET'])
+def instructor_my_courses():
+    # Get the global API context
+    api = get_api()
+
+    body = request.json
+
+    # Verify correct parameters have been given
+    if body is None or "username" not in body.keys() or "token" not in body.keys():
+        abort(500, description="Information not given!")
+
+    # Get instructor's courses
+    courses = api.see_teaching_courses(username=body["username"], token=body["token"])
+
+    # Return the courses as JSON
+    return json.dumps(courses)
+
+
 @app.route(f'{api_path}/instructor/edit_grade', methods=['PUT'])
 def instructor_edit_grade():
     # Get the global API context
