@@ -122,7 +122,7 @@ def student_register_course():
         abort(500, description="Information not given!")
 
     # Get list of courses + course info
-    result = api.register_for_course(username=body["username"], token=body["token"], course_id=body["course_id"])
+    result = api.register_for_course(username=body["username"], token=body["token"], course_abbreviation=body["course_id"])
 
     # Return the whether the registration was successful
     return json.dumps(f"{{ success: {result} }}")

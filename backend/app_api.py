@@ -21,6 +21,56 @@ class AppAPI(object):
         self._api_key_size = 32
         self._global_encoding = 'utf-8'
 
+    def init_db(self):
+        """Initialize the database with the required tables and schemas
+        """
+
+        cursor = self._db_connection.cursor()
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                full_name VARCHAR(255),
+                password VARCHAR(255) NOT NULL
+            );
+            
+            CREATE TABLE IF NOT EXISTS access_control (
+                access_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                uid INTEGER NOT NULL,
+                privilege VARCHAR(255) NOT NULL,
+                UNIQUE (uid, privilege),
+                CONSTRAINT fk_associated_user FOREIGN KEY (uid) REFERENCES users (uid)
+            );
+            
+            CREATE TABLE IF NOT EXISTS tokens (
+                token_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                token_content VARCHAR(255) NOT NULL,
+                expiration_datetime VARCHAR(255),
+                uid INTEGER NOT NULL,
+                CONSTRAINT fk_associated_user FOREIGN KEY (uid) REFERENCES users (uid)
+            );
+            
+            CREATE TABLE IF NOT EXISTS courses (
+                course_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                course_abbreviation VARCHAR(255) NOT NULL,
+                course_name VARCHAR(255) NOT NULL,
+                instructor_id INTEGER NOT NULL,
+                time VARCHAR(255) NOT NULL,
+                seats INTEGER NOT NULL,
+                CONSTRAINT fk_instructors FOREIGN KEY (instructor_id) REFERENCES users (uid)
+            );
+            
+            CREATE TABLE IF NOT EXISTS enrollment_records (
+                enrollment_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                uid INTEGER NOT NULL,
+                course_id INTEGER NOT NULL,
+                UNIQUE (uid, course_id),
+                CONSTRAINT fk_associated_user FOREIGN KEY (uid) REFERENCES users (uid),
+                CONSTRAINT fk_associated_course FOREIGN KEY (course_id) references courses (course_id)
+            );
+        ''')
+
     def close(self):
         self._db_connection.close()
 
@@ -321,18 +371,44 @@ class AppAPI(object):
 
         return courses
 
-    def register_for_course(self, username: str, token: str, course_id: str) -> bool:
+    def register_for_course(self, username: str, token: str, course_abbreviation: str) -> bool:
         """Register for a given course as the given user
 
         :param username: The user's username
         :param token: The user's authentication token (will be validated before changes are made)
-        :param course_id: The course ID to register for
+        :param course_abbreviation: The course to register for (as an abbreviated "identifier")
         :return: Whether or not the registration process was successful
         """
 
         # Validate user first
         if not self.validate(username=username, token=token, check_privilege='student'):
             raise RuntimeError("User not verified!")
+
+        # Get a DB cursor
+        cursor = self._db_connection.cursor()
+
+        # Get UID from user's username
+        uid = self.get_uid(username=username)
+
+        # Get the course ID from the course abbreviation
+        cursor.execute('''SELECT course_id FROM courses WHERE course_abbreviation LIKE ?''', (course_abbreviation,))
+        db_response = cursor.fetchone()
+
+        # If there are no matching course IDs
+        if db_response is None:
+            return False
+
+        # Extract the course ID from the tuple
+        course_id = db_response[0]
+
+        # Attempt to register for the specified course using the database
+        cursor.execute('''
+            INSERT INTO enrollment_records (uid, course_id) VALUES (?, ?);
+        ''', (uid, course_id))
+        self._db_connection.commit()
+
+        # Return success
+        return True
 
     # Instructor Activities
     def see_course_students(self, username: str, token: str, course_id: str) -> List[Tuple[str, float]]:
