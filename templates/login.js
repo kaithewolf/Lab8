@@ -37,6 +37,7 @@ function checkLogin(){
     alert("Missing password");
     return;
   }
+  
   let payload = {"username":name_str, "password":pass_str}
   $.ajax({
     url: "/api/v1/auth/",
