@@ -272,6 +272,55 @@ class AppAPI(object):
         if not self.validate(username=username, token=token, check_privilege='student'):
             raise RuntimeError("User not verified!")
 
+        # Query database for courses associated with this UID
+        cursor = self._db_connection.cursor()
+        cursor.execute(
+            '''
+            SELECT 
+                course_id,
+                course_abbreviation,
+                course_name,
+                instructor_id, 
+                time,
+                seats 
+            FROM 
+                courses
+            ;
+            ''')
+        db_results = cursor.fetchall()
+
+        # If no courses are available
+        if db_results is None:
+            return []
+
+        # Build information dicts for every course this user is enrolled in
+        courses = []
+        for result in db_results:
+            # Get the instructor's username (we don't want to be giving UIDs)
+            instructor_name = self.get_username(result[3])
+
+            # Get the number of students enrolled in this course
+            cursor.execute('''SELECT COUNT(*) FROM enrollment_records WHERE course_id = ?;''', (result[0],))
+            students_enrolled = cursor.fetchone()[0]
+            if students_enrolled is None:
+                students_enrolled = 0
+
+            # Don't add if the course is full (BUT ONLY if specified)
+            if spots_available and students_enrolled >= result[5]:
+                continue
+
+            # Build a course dict from the data
+            courses.append({
+                "course_abbreviation": result[1],
+                "course_name": result[2],
+                "instructor": instructor_name,
+                "time": result[4],
+                "students_enrolled": students_enrolled,
+                "capacity": result[5],
+            })
+
+        return courses
+
     def register_for_course(self, username: str, token: str, course_id: str) -> bool:
         """Register for a given course as the given user
 
